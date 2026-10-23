@@ -1,0 +1,126 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: pr-php:8.4-fpm
+    container_name: pr-app
+    restart: unless-stopped
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /var/www/html
+    environment:
+      HOME: /home/app
+      COMPOSER_HOME: /home/app/.composer
+      APP_NAME: ${APP_NAME:-pr}
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE:-pr_db}
+      DB_USERNAME: ${MYSQL_USER:-pr}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-pr}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
+      REDIS_DB: ${REDIS_DB:-0}
+    volumes:
+      - .:/var/www/html:cached
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini:ro
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+      - composer-cache:/home/app/.composer/cache
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: pr-nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - backend
+
+  mysql:
+    image: mysql:8.4
+    container_name: pr-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pr_db}
+      MYSQL_USER: ${MYSQL_USER:-pr}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-pr}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - ./docker/mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    container_name: pr-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD:-redis}
+      - --appendonly
+      - "yes"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - backend
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: pr-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: ${MYSQL_USER:-pr}
+      PMA_PASSWORD: ${MYSQL_PASSWORD:-pr}
+      PMA_ARBITRARY: 1
+      PMA_HOSTS: mysql
+    ports:
+      - "${PHPMYADMIN_PORT:-8081}:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend
+
+volumes:
+  composer-cache:
+  redis-data:
+
+networks:
+  backend:
+    driver: bridge

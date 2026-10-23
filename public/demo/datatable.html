@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo DataTables</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/assets/css/dataTables.dataTables.min.css" />
+    <link rel="stylesheet" href="/assets/css/app.css" />
+  </head>
+  <body class="bg-body-tertiary">
+    <div class="container py-5">
+      <h1 class="h3 mb-4">DataTables + server-side processing</h1>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <table
+            id="tablaUsuarios"
+            class="table table-striped table-hover w-100"
+          >
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Creado</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/dataTables.min.js"></script>
+    <script src="/assets/js/dataTables.bootstrap5.min.js"></script>
+    <script src="/assets/js/app.js"></script>
+    <script>
+      $("#tablaUsuarios").DataTable({
+        serverSide: true,
+        processing: true,
+        ajax: {
+          url: "/demo/api/datatables.php",
+          type: "POST",
+          data: { dataset: "usuarios" },
+        },
+        columns: [
+          { data: "id" },
+          { data: "nombre" },
+          { data: "email" },
+          { data: "rol" },
+          { data: "created_at" },
+        ],
+        language: {
+          emptyTable: "No hay datos",
+          info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+          infoEmpty: "Mostrando 0 a 0 de 0 registros",
+          infoFiltered: "(filtrados de _MAX_ registros totales)",
+          lengthMenu: "Mostrar _MENU_ registros por pagina",
+          loadingRecords: "Cargando...",
+          processing: "Procesando...",
+          search: "Buscar:",
+          zeroRecords: "No se encontraron registros",
+          paginate: {
+            first: "Primero",
+            last: "Ultimo",
+            next: "Siguiente",
+            previous: "Anterior",
+          },
+          aria: {
+            sortAscending: ": activar para ordenar ascendente",
+            sortDescending: ": activar para ordenar descendente",
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

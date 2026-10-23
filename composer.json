@@ -1,0 +1,45 @@
+{
+  "name": "pr/pr",
+  "description": "Proyecto PHP",
+  "type": "project",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.2",
+    "ext-gd": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "ext-redis": "*",
+    "phpmailer/phpmailer": "^7.1",
+    "phpoffice/phpspreadsheet": "^5.10",
+    "twig/twig": "^3.30",
+    "vlucas/phpdotenv": "^5.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "App\\Cli\\": "app/cli/",
+      "App\\Cli\\Commands\\": "app/cli/commands/",
+      "core\\": "app/core/",
+      "system\\": "app/system/",
+      "System\\": "modules/system/",
+      "System\\Controllers\\": "modules/system/controllers/",
+      "System\\WServices\\": "modules/system/wservices/",
+      "Admin\\": "modules/admin/",
+      "Admin\\Controllers\\": "modules/admin/controllers/",
+      "Admin\\WServices\\": "modules/admin/wservices/",
+      "Dashboard\\": "modules/dashboard/",
+      "Dashboard\\Controllers\\": "modules/dashboard/controllers/",
+      "Dashboard\\WServices\\": "modules/dashboard/wservices/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "check": [
+      "@php -r \"require 'vendor/autoload.php'; echo 'autoload OK'.PHP_EOL;\""
+    ]
+  }
+}
